@@ -1,4 +1,6 @@
 ﻿using JasperFx;
+using JasperFx.Core;
+using JasperFx.MultiTenancy;
 
 using Wolverine.Sqlite.Transport;
 
@@ -49,14 +51,47 @@ internal class SqliteBackedPersistence : IWolverineExtension, ISqliteBackedPersi
 {
     public string? ConnectionString { get; set; }
 
+    // This needs to be an override, and we use JasperFxOptions first!
+    public AutoCreate AutoCreate { get; set; } = AutoCreate.CreateOrUpdate;
+
+    /// <summary>
+    ///     Is this database exposing command queues?
+    /// </summary>
+    public bool CommandQueuesEnabled { get; set; } = true;
+
+    private int _scheduledJobLockId = 0;
+
+    public ITenantedSource<string>? ConnectionStringTenancy { get; set; }
+
+    // This would be an override
+    public int ScheduledJobLockId
+    {
+        get
+        {
+            if (_scheduledJobLockId > 0) return _scheduledJobLockId;
+
+            return $"scheduled-jobs".GetDeterministicHashCode();
+        }
+        set
+        {
+            _scheduledJobLockId = value;
+        }
+    }
+
     public void Configure(WolverineOptions options)
     {
-        throw new NotImplementedException();
+        if (ConnectionString.IsEmpty())
+        {
+            throw new InvalidOperationException("The Sqlite backed persistence needs to at least have either a connection string");
+        }
+
+        // TODO: not sure what else we need to do here
     }
 
     public ISqliteBackedPersistence EnableCommandQueues(bool enabled)
     {
-        throw new NotImplementedException();
+        CommandQueuesEnabled = enabled;
+        return this;
     }
 
     public ISqliteBackedPersistence EnableMessageTransport(Action<SqlitePersistenceExpression>? configure = null)
@@ -66,11 +101,13 @@ internal class SqliteBackedPersistence : IWolverineExtension, ISqliteBackedPersi
 
     public ISqliteBackedPersistence OverrideAutoCreateResources(AutoCreate autoCreate)
     {
-        throw new NotImplementedException();
+        AutoCreate = autoCreate;
+        return this;
     }
 
     public ISqliteBackedPersistence OverrideScheduledJobLockId(int lockId)
     {
-        throw new NotImplementedException();
+        _scheduledJobLockId = lockId;
+        return this;
     }
 }

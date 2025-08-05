@@ -11,7 +11,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.7" />
+	  <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\Wolverine\Wolverine.csproj" />
+		<ProjectReference Include="..\Wolverine.RDBMS\Wolverine.RDBMS.csproj" />
 	</ItemGroup>
 
 </Project>
